@@ -1,4 +1,4 @@
-import AdminProfileSetupForm from "@/components/custom/admin/profile-setup/profile-setup-form";
+import SalesProfileSetupForm from "@/components/custom/sales/profile-setup/profile-setup-form";
 import {
   Card,
   CardContent,
@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Icon } from "@iconify-icon/react";
 
-export default function AdminProfileSetupPage() {
+export default function SalesProfileSetupPage() {
   return (
     <div className="flex flex-col h-screen justify-center items-center gap-4">
       <a href="/" className="flex items-center gap-2">
@@ -26,11 +26,11 @@ export default function AdminProfileSetupPage() {
         <CardHeader>
           <CardTitle className="text-3xl font-primary">Profile Setup</CardTitle>
           <CardDescription>
-            Complete your profile setup to access the admin console.
+            Complete your profile setup to access the sales dashboard.
           </CardDescription>
           <CardContent className="px-0">
-            <AdminProfileSetupForm />
-            <div className="bg-gradient-to-r from-primary/5 border to-secondary/5 p-4 rounded-2xl">
+            <SalesProfileSetupForm />
+            {/* <div className="bg-gradient-to-r from-primary/5 border to-secondary/5 p-4 rounded-2xl">
               <span className="font-medium bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Permissions Granted:{" "}
               </span>
@@ -41,7 +41,7 @@ export default function AdminProfileSetupPage() {
                 <li>Tear down demo customers.</li>
                 <li>Full system administration.</li>
               </ul>
-            </div>
+            </div> */}
           </CardContent>
         </CardHeader>
       </Card>

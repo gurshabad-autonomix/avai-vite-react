@@ -34,6 +34,15 @@ export default function DevPage() {
             <code>/auth</code>
           </a>
         </li>
+        <li>
+          Sales Profile Setup:{" "}
+          <a
+            href="/sales/profile-setup"
+            className="underline underline-offset-4 hover:underline-offset-8 transition-all text-primary"
+          >
+            <code>/sales/profile-setup</code>
+          </a>
+        </li>
       </ul>
     </div>
   );

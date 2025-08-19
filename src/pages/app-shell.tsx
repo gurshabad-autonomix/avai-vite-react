@@ -1,12 +1,16 @@
 import { Routes, Route } from "react-router";
 import Navbar from "@/components/custom/navbar";
 
-import AuthPage from "@/pages/auth-page";
-import ConsolePage from "@/pages/admin/console-page";
-import AdminProfileSetupPage from "./admin/profile-setup-page";
 import ProtectedLayout from "./layouts/protected";
+import AuthPage from "@/pages/auth-page";
+
 import DevPage from "./dev-page";
-import SalesProfileSetupPage from "./sales/profile-setup-page";
+
+import AdminConsolePage from "@/pages/admin/console-page";
+import AdminProfileSetupPage from "@/pages/admin/profile-setup-page";
+
+import SalesConsolePage from "@/pages/sales/console-page";
+import SalesProfileSetupPage from "@/pages/sales/profile-setup-page";
 
 export default function AppShell() {
   const isAuthenticated = false;
@@ -18,11 +22,14 @@ export default function AppShell() {
         {/* ADMIN ROUTES */}
         <Route path="admin/profile-setup" element={<AdminProfileSetupPage />} />
         <Route path="admin" element={<ProtectedLayout />}>
-          <Route path="console" element={<ConsolePage />} />
+          <Route path="console" element={<AdminConsolePage />} />
         </Route>
 
         {/* SALES ROUTES */}
         <Route path="sales/profile-setup" element={<SalesProfileSetupPage />} />
+        <Route path="sales" element={<ProtectedLayout />}>
+          <Route path="console" element={<SalesConsolePage />} />
+        </Route>
       </Routes>
     </main>
   );

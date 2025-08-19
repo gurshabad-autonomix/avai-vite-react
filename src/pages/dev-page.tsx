@@ -35,6 +35,15 @@ export default function DevPage() {
           </a>
         </li>
         <li>
+          Sales Console:{" "}
+          <a
+            href="/sales/console"
+            className="underline underline-offset-4 hover:underline-offset-8 transition-all text-primary"
+          >
+            <code>/sales/console</code>
+          </a>
+        </li>
+        <li>
           Sales Profile Setup:{" "}
           <a
             href="/sales/profile-setup"

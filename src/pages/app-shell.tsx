@@ -11,6 +11,7 @@ import AdminProfileSetupPage from "@/pages/admin/profile-setup-page";
 
 import SalesConsolePage from "@/pages/sales/console-page";
 import SalesProfileSetupPage from "@/pages/sales/profile-setup-page";
+import { KnowledgeBaseDemo } from "@/components/custom/knowledge-base";
 
 export default function AppShell() {
   const isAuthenticated = false;
@@ -29,6 +30,11 @@ export default function AppShell() {
         <Route path="sales/profile-setup" element={<SalesProfileSetupPage />} />
         <Route path="sales" element={<ProtectedLayout />}>
           <Route path="console" element={<SalesConsolePage />} />
+        </Route>
+
+        {/* KNOWLEDGE BASE ROUTES */}
+        <Route path="knowledge-base" element={<ProtectedLayout />}>
+          <Route path="/knowledge-base" element={<KnowledgeBaseDemo />} />
         </Route>
       </Routes>
     </main>

@@ -52,6 +52,15 @@ export default function DevPage() {
             <code>/sales/profile-setup</code>
           </a>
         </li>
+        <li>
+          Knowledge Base Demo:{" "}
+          <a
+            href="/knowledge-base"
+            className="underline underline-offset-4 hover:underline-offset-8 transition-all text-primary"
+          >
+            <code>/knowledge-base</code>
+          </a>
+        </li>
       </ul>
     </div>
   );

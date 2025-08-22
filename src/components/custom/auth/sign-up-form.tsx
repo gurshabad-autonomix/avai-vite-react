@@ -13,24 +13,45 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuthenticatedFetch, useCognitoAuth } from "@/hooks/useCognitoAuth";
+import { env } from "@/lib/env";
 
 const formSchema = z.object({
-  secretCode: z.string().min(1),
+  secretCode: z.string({ error: "Required" }).min(1, { error: "Required" }),
+  email: z.email().min(1, { error: "Required" }),
 });
 
 export default function SignUpForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      secretCode: "",
+      email: "",
+    },
   });
+  const { signIn } = useCognitoAuth();
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>
+      const res = await fetch(`${env.API_ENDPOINT}/registration/validate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: values.secretCode,
+          email: values.email,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to validate code");
+      }
+      toast.success(
+        "A temporary password has been assigned to you. Please check your email inbox."
       );
+      signIn();
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
@@ -40,6 +61,19 @@ export default function SignUpForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="text" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="secretCode"

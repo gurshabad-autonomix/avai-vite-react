@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router";
-import Navbar from "@/components/custom/navbar";
 
 import ProtectedLayout from "./layouts/protected";
 import AuthPage from "@/pages/auth-page";
@@ -11,14 +10,18 @@ import AdminProfileSetupPage from "@/pages/admin/profile-setup-page";
 
 import SalesConsolePage from "@/pages/sales/console-page";
 import SalesProfileSetupPage from "@/pages/sales/profile-setup-page";
+import OwnerNeedsOnboarding from "./owner/onboarding-page";
+import OwnerConsolePage from "./owner/console-page";
 
 export default function AppShell() {
-  const isAuthenticated = false;
   return (
     <main className="min-h-screen">
       <Routes>
-        <Route index element={isAuthenticated ? <Navbar /> : <AuthPage />} />
+        {/* Root route always decides based on role */}
+        <Route index element={<AuthPage />} />
+
         <Route path="/dev" element={<DevPage />} />
+
         {/* ADMIN ROUTES */}
         <Route path="admin/profile-setup" element={<AdminProfileSetupPage />} />
         <Route path="admin" element={<ProtectedLayout />}>
@@ -29,6 +32,12 @@ export default function AppShell() {
         <Route path="sales/profile-setup" element={<SalesProfileSetupPage />} />
         <Route path="sales" element={<ProtectedLayout />}>
           <Route path="console" element={<SalesConsolePage />} />
+        </Route>
+
+        {/* OWNER ROUTES */}
+        <Route path="owner/onboarding" element={<OwnerNeedsOnboarding />} />
+        <Route path="owner" element={<ProtectedLayout />}>
+          <Route path="console" element={<OwnerConsolePage />} />
         </Route>
       </Routes>
     </main>

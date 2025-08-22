@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +23,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
-  Loader2,
 } from "lucide-react";
 import {
   FileInput,
@@ -31,26 +30,6 @@ import {
   FileUploaderContent,
   FileUploaderItem,
 } from "@/components/ui/file-upload";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useAuthenticatedFetch } from "@/hooks/useCognitoAuth";
-
-interface User {
-  id: string;
-  email: string;
-  fullName: string;
-}
-
-interface UserResponse {
-  users: User[];
-  total: number;
-}
 
 const step1Schema = z.object({
   customerEmail: z.string().email("Please enter a valid email address"),
@@ -62,13 +41,11 @@ const step2Schema = z.object({
     .min(3, "Business name must be at least 3 characters")
     .max(100, "Business name must be less than 100 characters"),
   phone: z.string().min(10, "Please enter a valid phone number"),
-  orgOwnerId: z.string().min(1, "Organization owner is required"),
 });
 
 const step3Schema = z.object({
   knowledgeBase: z.string().min(1, "Knowledge base URL is required"),
   browseFiles: z.string().optional(),
-  address: z.string().min(10, "Address must be detailed."),
 });
 
 const formSchema = step1Schema.merge(step2Schema).merge(step3Schema);
@@ -77,31 +54,6 @@ export default function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [files, setFiles] = useState<File[] | null>(null);
   const [direction, setDirection] = useState(0);
-  const [users, setUsers] = useState<User[]>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
-
-  const { authenticatedFetch } = useAuthenticatedFetch();
-
-  useEffect(() => {
-    getUsers();
-  }, []);
-
-  async function getUsers() {
-    setIsLoadingUsers(true);
-    try {
-      const res = await authenticatedFetch("/admin/users");
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      const data = (await res.json()) as UserResponse;
-
-      setUsers(data.users);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    } finally {
-      setIsLoadingUsers(false);
-    }
-  }
 
   const dropZoneConfig = {
     maxFiles: 5,
@@ -112,15 +64,6 @@ export default function OnboardingForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     mode: "onChange",
-    defaultValues: {
-      customerEmail: "",
-      businessName: "",
-      phone: "",
-      knowledgeBase: "",
-      browseFiles: "",
-      address: "",
-      orgOwnerId: "",
-    },
   });
 
   const validateStep = async (step: number) => {
@@ -131,10 +74,10 @@ export default function OnboardingForm() {
         isValid = await form.trigger(["customerEmail"]);
         break;
       case 2:
-        isValid = await form.trigger(["businessName", "phone", "orgOwnerId"]);
+        isValid = await form.trigger(["businessName", "phone"]);
         break;
       case 3:
-        isValid = await form.trigger(["knowledgeBase", "address"]);
+        isValid = await form.trigger(["knowledgeBase"]);
         break;
     }
 
@@ -156,29 +99,13 @@ export default function OnboardingForm() {
     }
   };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const postData = {
-        businessName: values.businessName,
-        contactEmail: values.customerEmail,
-        orgOwnerId: values.orgOwnerId,
-        website: values.knowledgeBase || "string", // Use empty string or default
-        address: values.address,
-        provisionedTwilioNumber: values.phone,
-      };
-
-      const res = await authenticatedFetch("/admin/customers", {
-        method: "POST",
-        body: JSON.stringify(postData),
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const result = await res.json();
-
-      toast.success("Form submitted successfully!");
+      toast(
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
+        </pre>
+      );
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
@@ -222,6 +149,7 @@ export default function OnboardingForm() {
             >
               {currentStep === 1 && (
                 <div className="space-y-6">
+
                   <FormField
                     control={form.control}
                     name="customerEmail"
@@ -248,6 +176,7 @@ export default function OnboardingForm() {
 
               {currentStep === 2 && (
                 <div className="space-y-6">
+
                   <FormField
                     control={form.control}
                     name="businessName"
@@ -290,51 +219,12 @@ export default function OnboardingForm() {
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="orgOwnerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Select User</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isLoadingUsers}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select a user" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {isLoadingUsers ? (
-                              <div className="flex items-center justify-center py-2 text-sm text-muted-foreground">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Loading users...
-                              </div>
-                            ) : users.length > 0 ? (
-                              users.map((user) => (
-                                <SelectItem key={user.id} value={user.id}>
-                                  {user.fullName} ({user.email})
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <SelectItem value="no-users" disabled>
-                                No users available
-                              </SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
               )}
 
               {currentStep === 3 && (
                 <div className="space-y-6">
+
                   <FormField
                     control={form.control}
                     name="knowledgeBase"
@@ -352,27 +242,6 @@ export default function OnboardingForm() {
                           This is the URL of your website which will be used to
                           train AVAI.
                         </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            className="resize-none"
-                            rows={6}
-                            {...field}
-                          />
-                        </FormControl>
-                        {/* <FormDescription>
-                          This is the URL of your website which will be used to
-                          train AVAI.
-                        </FormDescription> */}
                         <FormMessage />
                       </FormItem>
                     )}

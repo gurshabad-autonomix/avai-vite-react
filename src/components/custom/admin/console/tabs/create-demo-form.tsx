@@ -73,7 +73,7 @@ const step3Schema = z.object({
 
 const formSchema = step1Schema.merge(step2Schema).merge(step3Schema);
 
-export default function OnboardingForm() {
+export default function CreateDemoForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [files, setFiles] = useState<File[] | null>(null);
   const [direction, setDirection] = useState(0);
@@ -167,7 +167,7 @@ export default function OnboardingForm() {
         provisionedTwilioNumber: values.phone,
       };
 
-      const res = await authenticatedFetch("/admin/customers", {
+      const res = await authenticatedFetch("/admin/demos", {
         method: "POST",
         body: JSON.stringify(postData),
       });

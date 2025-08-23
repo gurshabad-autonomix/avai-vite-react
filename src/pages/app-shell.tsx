@@ -12,6 +12,7 @@ import SalesConsolePage from "@/pages/sales/console-page";
 import SalesProfileSetupPage from "@/pages/sales/profile-setup-page";
 import OwnerNeedsOnboarding from "./owner/onboarding-page";
 import OwnerConsolePage from "./owner/console-page";
+import KnowledgeBaseDemo from "@/components/custom/knowledge-base/knowledge-base-demo";
 
 export default function AppShell() {
   return (
@@ -38,6 +39,11 @@ export default function AppShell() {
         <Route path="owner/onboarding" element={<OwnerNeedsOnboarding />} />
         <Route path="owner" element={<ProtectedLayout />}>
           <Route path="console" element={<OwnerConsolePage />} />
+        </Route>
+
+        {/* KNOWLEDGE BASE ROUTES */}
+        <Route path="knowledge-base" element={<ProtectedLayout />}>
+          <Route path="/knowledge-base" element={<KnowledgeBaseDemo />} />
         </Route>
       </Routes>
     </main>

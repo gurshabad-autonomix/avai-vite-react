@@ -6,39 +6,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Icon } from "@iconify-icon/react";
-import SignUpForm from "@/components/custom/auth/sign-up-form";
-import { useCognitoAuth } from "@/hooks/useCognitoAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { useMe } from "@/hooks/useMe";
 import { useNavigate } from "react-router";
 import { useEffect } from "react";
-import { getConsolePath, getProfileSetupPath } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
 export default function AuthPage() {
-  const { signIn } = useCognitoAuth();
+  const { signIn, signUp, isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
 
   function handleSignIn() {
     signIn();
   }
 
-  const { data: user, loading } = useMe();
-  const navigate = useNavigate();
-
   useEffect(() => {
-    if (user) {
-      // User is authenticated, redirect based on onboarding status and role
-      if (user.onboarded) {
-        const consolePath = getConsolePath(user.role);
-        navigate(consolePath, { replace: true });
-      } else {
-        const setupPath = getProfileSetupPath(user.role);
-        navigate(setupPath, { replace: true });
-      }
+    if (!isLoading && isAuthenticated) {
+      navigate("/welcome", { replace: true });
     }
-  }, [user, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="animate-spin text-xl text-primary" />
@@ -46,7 +34,7 @@ export default function AuthPage() {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <div className="h-screen flex flex-col items-center gap-4 justify-center">
         <a href="/" className="flex items-center gap-2">
@@ -62,23 +50,22 @@ export default function AuthPage() {
         </a>
         <Card className="w-[90%] md:w-[40%] bg-background backdrop-blur-lg border-white/10">
           <CardHeader>
-            <CardTitle className="text-3xl font-primary">
-              Create An Account
-            </CardTitle>
-            <CardDescription>
-              Proceed with an invite code (for Admin/Sales)
-            </CardDescription>
+            <CardTitle className="text-3xl font-primary">Welcome</CardTitle>
+            <CardDescription>Sign in or create an account</CardDescription>
           </CardHeader>
-          <CardContent>
-            <SignUpForm />
+          <CardContent className="flex flex-col gap-2">
+            <Button onClick={handleSignIn} className="w-full rounded-full">
+              Sign In
+            </Button>
+            <Button
+              onClick={() => signUp()}
+              variant="outline"
+              className="w-full rounded-full"
+            >
+              Create Account
+            </Button>
           </CardContent>
         </Card>
-        <span className="text-muted-foreground">
-          Already have an account?{" "}
-          <Button onClick={handleSignIn} variant="link" className="p-0">
-            Sign In
-          </Button>
-        </span>
       </div>
     );
   }

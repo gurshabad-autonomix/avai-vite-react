@@ -8,12 +8,31 @@ export default function DevPage() {
       </span>
       <ul className="list-disc leading-loose pl-5 text-lg text-muted-foreground">
         <li>
+          Welcome:{" "}
+          <a
+            href="/welcome"
+            className="underline underline-offset-4 hover:underline-offset-8 transition-all text-primary"
+          >
+            <code>/welcome</code>
+          </a>
+        </li>
+        <li>
           Admin Console:{" "}
           <a
             href="/admin/console"
             className="underline underline-offset-4 hover:underline-offset-8 transition-all text-primary"
           >
             <code>/admin/console</code>
+          </a>
+        </li>
+        {/* org owner */}
+        <li>
+          Owner Console:{" "}
+          <a
+            href="/owner/console"
+            className="underline underline-offset-4 hover:underline-offset-8 transition-all text-primary"
+          >
+            <code>/owner/console</code>
           </a>
         </li>
         <li>

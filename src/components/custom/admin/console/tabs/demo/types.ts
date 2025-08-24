@@ -8,7 +8,6 @@ export interface Demo {
   businessName: string;
   website: string;
   address: string;
-  contactEmail: string;
   createdAt: string;
   expired: boolean;
   expiresAt: string;

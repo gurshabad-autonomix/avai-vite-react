@@ -1,18 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
-import { useAuthenticatedFetch } from "./useCognitoAuth";
+import { useAuthenticatedFetch } from "./useAuth";
+import { useAtom } from "jotai";
+import { meAtom } from "@/state/auth";
+import type { MeResponse } from "@/types/auth";
 
-// Hook that fetches /me. For now uses a mock, but respects authenticated fetch interface for easy swap later.
-export interface MeResponse {
-  email: string;
-  fullName: string;
-  role: string;
-  customerId?: string;
-  onboarded: boolean;
-}
+// Hook that fetches /me and persists to jotai atom
 
 export function useMe() {
   const { authenticatedFetch } = useAuthenticatedFetch();
-  const [data, setData] = useState<MeResponse | null>(null);
+  const [data, setData] = useAtom(meAtom);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

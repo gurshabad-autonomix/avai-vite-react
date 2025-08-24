@@ -36,10 +36,7 @@ export const columns: ColumnDef<Demo>[] = [
       </a>
     ),
   },
-  {
-    accessorKey: "contactEmail",
-    header: "Contact Email",
-  },
+
   {
     accessorKey: "address",
     header: "Address",

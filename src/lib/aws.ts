@@ -1,20 +1,13 @@
 import { env } from "./env";
 
-const aws = {
-  Auth: {
-    Cognito: {
-      userPoolId: env.AWS_USER_POOL_ID,
-      userPoolClientId: env.AWS_USER_POOL_CLIENT_ID,
-      signUpVerificationMethod: "code" as const,
-    },
-    oauth: {
-      domain: env.AUTH_DOMAIN,
-      scope: ["email", "openid", "phone", "profile"],
-      redirectSignIn: env.REDIRECT_SIGN_IN,
-      redirectSignOut: env.REDIRECT_SIGN_IN,
-      responseType: "code",
-    },
-  },
+// Keycloak configuration wrapper
+// Note: We keep this file name for compatibility with existing imports.
+const keycloakConfig = {
+  url: env.KEYCLOAK_URL,
+  realm: env.KEYCLOAK_REALM,
+  clientId: env.KEYCLOAK_CLIENT_ID,
+  redirectUri: env.REDIRECT_URI,
+  silentCheckSsoRedirectUri: env.SILENT_CHECK_SSO_REDIRECT_URI,
 };
 
-export default aws;
+export default keycloakConfig;

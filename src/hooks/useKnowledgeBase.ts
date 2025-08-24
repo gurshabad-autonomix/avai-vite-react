@@ -5,11 +5,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-
-// TODO: Replace with actual auth hook
-const useAuth = () => ({
-  token: "placeholder-access-token",
-});
+import { useAuthenticatedFetch } from "./useAuth";
 
 export interface KnowledgeBaseConfig {
   orgId: string;
@@ -42,23 +38,15 @@ export interface UploadProgress {
   message?: string;
 }
 
-const API_BASE = "http://localhost:8080";
-
 export const useKnowledgeBase = (config: KnowledgeBaseConfig) => {
-  const { token } = useAuth();
+  const { authenticatedFetch } = useAuthenticatedFetch();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
     null
   );
 
   const makeRequest = async (url: string, options: RequestInit = {}) => {
-    const response = await fetch(`${API_BASE}${url}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...options.headers,
-      },
-    });
+    const response = await authenticatedFetch(url, options);
 
     if (!response.ok) {
       const error = await response.text();
@@ -71,7 +59,7 @@ export const useKnowledgeBase = (config: KnowledgeBaseConfig) => {
   const crawlWebsite = async (request: CrawlRequest) => {
     setIsLoading(true);
     try {
-      const url = `/avai/knowledge-bases:ingest-crawl?orgId=${config.orgId}&locationId=${config.locationId}`;
+      const url = `/knowledge-bases:ingest-crawl?orgId=${config.orgId}&locationId=${config.locationId}`;
       await makeRequest(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,7 +88,7 @@ export const useKnowledgeBase = (config: KnowledgeBaseConfig) => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const url = `/avai/knowledge-bases/uploads:${type}?orgId=${config.orgId}&locationId=${config.locationId}`;
+      const url = `/knowledge-bases/uploads:${type}?orgId=${config.orgId}&locationId=${config.locationId}`;
 
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -142,11 +130,9 @@ export const useKnowledgeBase = (config: KnowledgeBaseConfig) => {
   ): Promise<SearchResult[]> => {
     setIsLoading(true);
     try {
-      const url = `/avai/knowledge-bases:search?orgId=${
-        config.orgId
-      }&locationId=${config.locationId}&query=${encodeURIComponent(
-        request.query
-      )}&topK=${request.topK || 3}`;
+      const url = `/knowledge-bases:search?orgId=${config.orgId}&locationId=${
+        config.locationId
+      }&query=${encodeURIComponent(request.query)}&topK=${request.topK || 3}`;
       const response = await makeRequest(url);
       const results = await response.json();
       return results;

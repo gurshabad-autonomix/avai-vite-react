@@ -1,4 +1,4 @@
-import OwnerTabs from "@/components/custom/owner/console/owner-tabs";
+import OrgOwnerReports from "@/pages/owner/reports-page.tsx";
 
 export default function OwnerConsolePage() {
   return (
@@ -6,14 +6,14 @@ export default function OwnerConsolePage() {
       <div className="flex flex-col items-center">
         <div className="flex flex-col gap-2 text-center">
           <h1 className="text-2xl md:text-4xl font-primary font-semibold tracking-wide">
-            AVAI My Account
+            AVAI Owner Console
           </h1>
           <span className="text-sm md:text-base text-muted-foreground">
-            View your organization profile, phone numbers, and call history.
+            Reports and insights for your organization
           </span>
         </div>
       </div>
-      <OwnerTabs />
+      <OrgOwnerReports />
     </section>
   );
 }

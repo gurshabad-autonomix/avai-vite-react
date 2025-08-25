@@ -52,13 +52,7 @@ export const customerColumns: ColumnDef<Customer>[] = [
       </div>
     ),
   },
-  {
-    accessorKey: "contactEmail",
-    header: "CONTACT EMAIL",
-    cell: ({ row }) => (
-      <div className="text-center">{row.getValue("contactEmail")}</div>
-    ),
-  },
+
   {
     accessorKey: "address",
     header: "ADDRESS",

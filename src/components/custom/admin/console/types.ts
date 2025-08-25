@@ -8,12 +8,12 @@ export interface Demo {
   businessName: string;
   website: string;
   address: string;
-  contactEmail: string;
   createdAt: string;
   expired: boolean;
   expiresAt: string;
   orgOwnerId: OrgOwnerId;
   provisionedTwilioNumber: string;
+  locationId?: string;
 }
 
 export interface Customer {
@@ -21,7 +21,6 @@ export interface Customer {
   businessName: string;
   website: string;
   address: string;
-  contactEmail: string;
   createdAt: string;
   orgOwnerId: string;
   provisionedTwilioNumber: string;

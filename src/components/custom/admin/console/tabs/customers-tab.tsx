@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuthenticatedFetch } from "@/hooks/useCognitoAuth";
+import { useAuthenticatedFetch } from "@/hooks/useAuth";
 import {
   type Customer,
   type CustomersResponse,

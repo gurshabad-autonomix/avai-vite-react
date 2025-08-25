@@ -21,9 +21,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -41,7 +38,10 @@ interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
   searchKey: string;
   searchPlaceholder?: string;
-  onRowAction?: (row: TData) => void;
+  meta?: {
+    refreshData?: () => void;
+    [key: string]: unknown;
+  };
 }
 
 export function DataTable<TData>({
@@ -49,7 +49,7 @@ export function DataTable<TData>({
   columns,
   searchKey,
   searchPlaceholder = "Search...",
-  onRowAction,
+  meta,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -70,6 +70,7 @@ export function DataTable<TData>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    meta,
     state: {
       sorting,
       columnFilters,

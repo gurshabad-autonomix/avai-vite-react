@@ -4,14 +4,14 @@ import ProtectedLayout from "./layouts/protected";
 import AuthPage from "@/pages/auth-page";
 
 import DevPage from "./dev-page";
+import UnassignedUserPage from "./unassigned-page";
+import WelcomeGate from "./welcome-gate";
 
 import AdminConsolePage from "@/pages/admin/console-page";
-import AdminProfileSetupPage from "@/pages/admin/profile-setup-page";
 
 import SalesConsolePage from "@/pages/sales/console-page";
-import SalesProfileSetupPage from "@/pages/sales/profile-setup-page";
-import OwnerNeedsOnboarding from "./owner/onboarding-page";
-import OwnerConsolePage from "./owner/console-page";
+import OwnerConsolePage from "@/pages/owner/console-page.tsx";
+import KnowledgeBaseDemo from "@/components/custom/knowledge-base/knowledge-base-demo";
 
 export default function AppShell() {
   return (
@@ -22,22 +22,30 @@ export default function AppShell() {
 
         <Route path="/dev" element={<DevPage />} />
 
+        {/* WELCOME ROUTES */}
+        <Route path="welcome" element={<ProtectedLayout />}>
+          <Route index element={<WelcomeGate />} />
+          <Route path="invite" element={<UnassignedUserPage />} />
+        </Route>
+
         {/* ADMIN ROUTES */}
-        <Route path="admin/profile-setup" element={<AdminProfileSetupPage />} />
         <Route path="admin" element={<ProtectedLayout />}>
           <Route path="console" element={<AdminConsolePage />} />
         </Route>
 
         {/* SALES ROUTES */}
-        <Route path="sales/profile-setup" element={<SalesProfileSetupPage />} />
         <Route path="sales" element={<ProtectedLayout />}>
           <Route path="console" element={<SalesConsolePage />} />
         </Route>
 
         {/* OWNER ROUTES */}
-        <Route path="owner/onboarding" element={<OwnerNeedsOnboarding />} />
         <Route path="owner" element={<ProtectedLayout />}>
           <Route path="console" element={<OwnerConsolePage />} />
+        </Route>
+
+        {/* KNOWLEDGE BASE ROUTES */}
+        <Route path="knowledge-base" element={<ProtectedLayout />}>
+          <Route path="/knowledge-base" element={<KnowledgeBaseDemo />} />
         </Route>
       </Routes>
     </main>

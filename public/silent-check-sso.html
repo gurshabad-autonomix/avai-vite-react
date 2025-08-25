@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      // Notify parent window - required by Keycloak silent SSO
+      parent.postMessage(location.href, location.origin);
+    </script>
+  </body>
+</html>

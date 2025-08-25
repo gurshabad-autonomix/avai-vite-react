@@ -15,13 +15,12 @@ export default function CreateDemoTab() {
           Create a new Demo
         </CardTitle>
         <CardDescription>
-          Create new production customers with full Twilio integration and phone
-          number provisioning.
+          Create a demo customer with Twilio phone provisioning.
         </CardDescription>
-        <CardContent className="p-4">
-          <CreateDemoForm />
-        </CardContent>
       </CardHeader>
+      <CardContent className="p-4">
+        <CreateDemoForm />
+      </CardContent>
     </Card>
   );
 }

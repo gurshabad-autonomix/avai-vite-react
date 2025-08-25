@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuthenticatedFetch } from "@/hooks/useCognitoAuth";
+import { useAuthenticatedFetch } from "@/hooks/useAuth";
 import {
   type Demo,
   type DemosResponse,
@@ -128,6 +128,7 @@ export default function DemoManagementTab() {
           columns={demoColumns}
           searchKey="businessName"
           searchPlaceholder="Search demos by business name..."
+          meta={{ refreshData: fetchDemos }}
         />
       </CardContent>
     </Card>

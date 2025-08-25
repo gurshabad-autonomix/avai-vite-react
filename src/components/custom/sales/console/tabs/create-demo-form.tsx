@@ -7,6 +7,7 @@ export default function CreateDemoForm() {
     <CustomerOnboardingForm
       submitUrl="/admin/demos"
       requireOrgOwner={true}
+      useDemoNumberPool={true}
       showKnowledgeBaseOnSuccess={true}
     />
   );

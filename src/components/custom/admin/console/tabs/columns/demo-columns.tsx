@@ -4,16 +4,18 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { type Demo } from "@/components/custom/admin/console/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { KnowledgeBaseManager } from "@/components/custom/knowledge-base";
+import { DeleteDemoDialog } from "./delete-demo-dialog";
 
 export const demoColumns: ColumnDef<Demo>[] = [
   {
@@ -144,30 +146,51 @@ export const demoColumns: ColumnDef<Demo>[] = [
       </div>
     ),
     enableHiding: false,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const demo = row.original;
+      const hasLocation = Boolean(demo.locationId);
+
+      // Get refresh function from table meta if available
+      const refreshData = (table.options.meta as { refreshData?: () => void })
+        ?.refreshData;
 
       return (
-        <div className="flex justify-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(demo.orgId)}
-              >
-                Copy Demo ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>View details</DropdownMenuItem>
-              <DropdownMenuItem>Extend expiry</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex justify-center space-x-2">
+          {hasLocation ? (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>Manage</Button>
+              </DialogTrigger>
+              <DialogContent className="w-[80vw] max-w-[80vw] sm:max-w-[80vw] md:max-w-[80vw] lg:max-w-[80vw]">
+                <DialogHeader>
+                  <DialogTitle>Knowledge Base</DialogTitle>
+                  <DialogDescription>
+                    Upload documents, crawl website, and search knowledge for
+                    this demo.
+                  </DialogDescription>
+                </DialogHeader>
+                {/* Render KB Manager inline for the demo org/location */}
+                <KnowledgeBaseManager
+                  orgId={demo.orgId}
+                  locationId={demo.locationId as string}
+                />
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              className="bg-transparent"
+              disabled
+            >
+              No KB
+            </Button>
+          )}
+
+          <DeleteDemoDialog
+            demo={demo}
+            onSuccess={() => refreshData && refreshData()}
+          />
         </div>
       );
     },

@@ -128,6 +128,7 @@ export default function DemoManagementTab() {
           columns={demoColumns}
           searchKey="businessName"
           searchPlaceholder="Search demos by business name..."
+          meta={{ refreshData: fetchDemos }}
         />
       </CardContent>
     </Card>

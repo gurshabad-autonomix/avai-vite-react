@@ -38,6 +38,10 @@ interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
   searchKey: string;
   searchPlaceholder?: string;
+  meta?: {
+    refreshData?: () => void;
+    [key: string]: unknown;
+  };
 }
 
 export function DataTable<TData>({
@@ -45,6 +49,7 @@ export function DataTable<TData>({
   columns,
   searchKey,
   searchPlaceholder = "Search...",
+  meta,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -65,6 +70,7 @@ export function DataTable<TData>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    meta,
     state: {
       sorting,
       columnFilters,

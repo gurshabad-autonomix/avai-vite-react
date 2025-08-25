@@ -25,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import KnowledgeBaseManager from "@/components/custom/knowledge-base/knowledge-base-manager";
 import { useAuthenticatedFetch, useAuth } from "@/hooks/useAuth";
 
@@ -44,6 +43,7 @@ interface CustomerOnboardingFormProps {
   submitUrl: string;
   requireOrgOwner?: boolean;
   showKnowledgeBaseOnSuccess?: boolean;
+  useDemoNumberPool?: boolean;
 }
 
 interface CreateCustomerResponse {
@@ -63,12 +63,24 @@ export default function CustomerOnboardingForm({
   submitUrl,
   requireOrgOwner = true,
   showKnowledgeBaseOnSuccess = true,
+  useDemoNumberPool = false,
 }: CustomerOnboardingFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [created, setCreated] = useState<CreateCustomerResponse | null>(null);
+  const [demoNumbers, setDemoNumbers] = useState<
+    Array<{
+      id: string;
+      phoneNumber: string;
+      available?: boolean;
+      assignedToOrgId?: string | null;
+      assignedAt?: string | null;
+      createdAt?: string;
+    }>
+  >([]);
+  const [isLoadingDemoNumbers, setIsLoadingDemoNumbers] = useState(false);
 
   const lastStep = requireOrgOwner ? 3 : 2;
 
@@ -103,8 +115,17 @@ export default function CustomerOnboardingForm({
   const step3Schema = useMemo(
     () =>
       z.object({
-        website: z.string().min(1, "Website is required"),
-        address: z.string().min(10, "Address must be detailed."),
+        websiteUrl: z
+          .union([z.string().url("Enter a valid URL"), z.literal("")])
+          .optional(),
+        address: z.object({
+          street1: z.string().min(1, "Street address is required"),
+          street2: z.string().optional(),
+          city: z.string().min(1, "City is required"),
+          state: z.string().min(2, "State is required"),
+          postalCode: z.string().min(3, "Postal code is required"),
+          country: z.string().min(2, "Country is required"),
+        }),
       }),
     []
   );
@@ -124,8 +145,15 @@ export default function CustomerOnboardingForm({
   type FormValues = z.infer<typeof formSchema> & {
     businessName: string;
     phone: string;
-    website: string;
-    address: string;
+    websiteUrl?: string;
+    address: {
+      street1: string;
+      street2?: string;
+      city: string;
+      state: string;
+      postalCode: string;
+      country: string;
+    };
     orgOwnerId?: string;
   };
 
@@ -149,14 +177,51 @@ export default function CustomerOnboardingForm({
     getUsers();
   }, [authenticatedFetch, requireOrgOwner]);
 
+  useEffect(() => {
+    if (!useDemoNumberPool) return;
+    const fetchDemoNumbers = async () => {
+      setIsLoadingDemoNumbers(true);
+      try {
+        const res = await authenticatedFetch("/admin/demo-phone-numbers");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = (await res.json()) as {
+          availableNumbers: Array<{
+            id: string;
+            phoneNumber: string;
+          }>;
+          stats?: {
+            totalNumbers: number;
+            availableNumbers: number;
+            assignedNumbers: number;
+          };
+        };
+        setDemoNumbers(data.availableNumbers || []);
+      } catch (error) {
+        console.error("Error fetching demo phone numbers:", error);
+      } finally {
+        setIsLoadingDemoNumbers(false);
+      }
+    };
+    fetchDemoNumbers();
+  }, [authenticatedFetch, useDemoNumberPool]);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     mode: "onChange",
     defaultValues: {
       businessName: "",
       phone: "",
-      website: "",
-      address: "",
+      websiteUrl: "",
+      address: {
+        street1: "",
+        street2: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        country: "US",
+      },
       orgOwnerId: requireOrgOwner ? "" : undefined,
     },
   });
@@ -172,11 +237,25 @@ export default function CustomerOnboardingForm({
           if (requireOrgOwner) {
             isValid = await form.trigger(["orgOwnerId"]);
           } else {
-            isValid = await form.trigger(["website", "address"]);
+            isValid = await form.trigger([
+              "websiteUrl",
+              "address.street1",
+              "address.city",
+              "address.state",
+              "address.postalCode",
+              "address.country",
+            ]);
           }
           break;
         case 3:
-          isValid = await form.trigger(["website", "address"]);
+          isValid = await form.trigger([
+            "websiteUrl",
+            "address.street1",
+            "address.city",
+            "address.state",
+            "address.postalCode",
+            "address.country",
+          ]);
           break;
       }
       return isValid;
@@ -199,6 +278,22 @@ export default function CustomerOnboardingForm({
     }
   }, [currentStep]);
 
+  const formatAddressString = useCallback(
+    (addr: FormValues["address"]): string => {
+      const parts: string[] = [];
+      if (addr.street1) parts.push(addr.street1);
+      if (addr.street2) parts.push(addr.street2);
+      const cityState = addr.state ? `${addr.city}, ${addr.state}` : addr.city;
+      const cityStatePostal = addr.postalCode
+        ? `${cityState} ${addr.postalCode}`
+        : cityState;
+      if (cityStatePostal) parts.push(cityStatePostal);
+      if (addr.country) parts.push(addr.country);
+      return parts.filter(Boolean).join(", ");
+    },
+    []
+  );
+
   async function onSubmit(values: FormValues) {
     try {
       const selectedUserEmail = requireOrgOwner
@@ -218,8 +313,8 @@ export default function CustomerOnboardingForm({
       const postData = {
         businessName: values.businessName,
         orgOwnerId: orgOwnerId,
-        website: values.website,
-        address: values.address,
+        website: values.websiteUrl || undefined,
+        address: formatAddressString(values.address),
         provisionedTwilioNumber: values.phone,
       };
 
@@ -335,17 +430,60 @@ export default function CustomerOnboardingForm({
                     name="phone"
                     render={({ field }) => (
                       <FormItem className="flex flex-col items-start">
-                        <FormLabel>Phone</FormLabel>
-                        <FormControl className="w-full">
-                          <PhoneInput
-                            placeholder="Enter phone number"
-                            {...field}
-                            defaultCountry="US"
-                          />
-                        </FormControl>
+                        <FormLabel>
+                          {useDemoNumberPool ? "Demo Number" : "Phone"}
+                        </FormLabel>
+                        {useDemoNumberPool ? (
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            disabled={
+                              isLoadingDemoNumbers || demoNumbers.length === 0
+                            }
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue
+                                  placeholder={
+                                    isLoadingDemoNumbers
+                                      ? "Loading available demo numbers..."
+                                      : demoNumbers.length === 0
+                                      ? "No demo numbers available"
+                                      : "Select a demo number"
+                                  }
+                                />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {demoNumbers.length > 0 ? (
+                                demoNumbers.map((num) => (
+                                  <SelectItem
+                                    key={num.id}
+                                    value={num.phoneNumber}
+                                  >
+                                    {num.phoneNumber}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-numbers" disabled>
+                                  No demo numbers available
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <FormControl className="w-full">
+                            <PhoneInput
+                              placeholder="Enter phone number"
+                              {...field}
+                              defaultCountry="US"
+                            />
+                          </FormControl>
+                        )}
                         <FormDescription>
-                          Enter a US phone number in E.164 format (e.g.,
-                          +12223334444).
+                          {useDemoNumberPool
+                            ? "Select a preassigned demo number from the pool."
+                            : "Enter a US phone number in E.164 format (e.g., +12223334444)."}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -402,43 +540,124 @@ export default function CustomerOnboardingForm({
                 <div className="space-y-6">
                   <FormField
                     control={form.control}
-                    name="website"
+                    name="websiteUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Website (reference)</FormLabel>
+                        <FormLabel>Website (optional)</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter website URL"
-                            type="text"
+                            placeholder="https://example.com (optional)"
+                            type="url"
                             {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          This website is for reference. Uploads/crawling happen
-                          after creation.
+                          Optional reference URL. Uploads/crawling happen after
+                          creation.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            className="resize-none"
-                            rows={6}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="address.street1"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Street Address</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="123 Main St"
+                              type="text"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="address.street2"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>
+                            Apartment, suite, etc. (optional)
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Apt 4B"
+                              type="text"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="address.city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input placeholder="City" type="text" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="address.state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State/Region</FormLabel>
+                          <FormControl>
+                            <Input placeholder="State" type="text" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="address.postalCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Postal Code</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="ZIP / Postal code"
+                              type="text"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="address.country"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Country</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Country"
+                              type="text"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
             </motion.div>

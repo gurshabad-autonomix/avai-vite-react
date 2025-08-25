@@ -13,6 +13,7 @@ export interface Demo {
   expiresAt: string;
   orgOwnerId: OrgOwnerId;
   provisionedTwilioNumber: string;
+  locationId?: string;
 }
 
 export interface Customer {
